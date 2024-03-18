@@ -1,0 +1,51 @@
+name: Autograding Tests
+'on':
+- push
+- workflow_dispatch
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: jmp1
+      id: jmp1
+      uses: education/autograding-command-grader@v1
+      with:
+        test-name: jmp1
+        setup-command: sudo -H pip3 install -r requirements.txt
+        command: pytest -k abs
+        timeout: 10
+        max-score: 0
+    - name: jmp2
+      id: jmp2
+      uses: education/autograding-command-grader@v1
+      with:
+        test-name: jmp2
+        setup-command: ''
+        command: pytest -k max
+        timeout: 10
+        max-score: 1
+    - name: jmp3
+      id: jmp3
+      uses: education/autograding-command-grader@v1
+      with:
+        test-name: jmp3
+        setup-command: ''
+        command: pytest -k mult
+        timeout: 10
+        max-score: 1
+    - name: Autograding Reporter
+      uses: education/autograding-grading-reporter@v1
+      env:
+        JMP1_RESULTS: "${{steps.jmp1.outputs.result}}"
+        JMP2_RESULTS: "${{steps.jmp2.outputs.result}}"
+        JMP3_RESULTS: "${{steps.jmp3.outputs.result}}"
+      with:
+        runners: jmp1,jmp2,jmp3
