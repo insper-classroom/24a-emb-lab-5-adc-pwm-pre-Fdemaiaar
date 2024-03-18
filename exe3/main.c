@@ -25,19 +25,38 @@ void data_task(void *p) {
 
 void process_task(void *p) {
     int data = 0;
+    int window[5] = {0}; // Janela para o filtro de média móvel
+    int sum = 0; // Soma dos valores na janela
+    int count = 0; // Contador para saber quando a janela está cheia
+    int index = 0; // Índice para adicionar novos valores na janela
 
     while (true) {
-        if (xQueueReceive(xQueueData, &data, 100)) {
-            // implementar filtro aqui!
+        if (xQueueReceive(xQueueData, &data, portMAX_DELAY)) {
+            // Adiciona o novo valor na janela, substituindo o mais antigo
+            sum -= window[index]; // Subtrai o valor antigo da soma
+            window[index] = data; // Atualiza com o novo valor
+            sum += data; // Adiciona o novo valor à soma
 
+            // Avança o índice e reseta se necessário
+            index = (index + 1) % 5;
 
+            // Aumenta o contador até que a janela esteja cheia
+            if (count < 5) {
+                count++;
+            }
 
+            // Calcula a média móvel se a janela estiver cheia
+            if (count == 5) {
+                int moving_average = sum / 5;
+                printf("Média Móvel: %d\n", moving_average);
+            }
 
-            // deixar esse delay!
+            // Deixar esse delay!
             vTaskDelay(pdMS_TO_TICKS(50));
         }
     }
 }
+
 
 int main() {
     stdio_init_all();
